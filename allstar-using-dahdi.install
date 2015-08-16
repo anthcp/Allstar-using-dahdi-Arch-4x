@@ -1,0 +1,14 @@
+post_install() {
+  systemctl enable asterisk-allstar.service
+  systemctl start asterisk-allstar
+}
+
+post_upgrade() {
+  depmod -a
+}
+
+post_remove() {
+  depmod -a
+}
+
+# vim:set ts=2 sw=2 et:

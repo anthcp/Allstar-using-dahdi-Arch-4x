@@ -1,0 +1,173 @@
+diff -rupN -X exclude.pats astsrc-1.4.23-pre/trunk/Makefile ../../../odroid1/Allstar-dahdi-asterisk-arch-odroid/src/astsrc-1.4.23-pre/trunk/Makefile
+--- astsrc-1.4.23-pre/trunk/Makefile	2015-08-11 03:03:03.862420037 +0000
++++ astsrc-1.4.23-pre/trunk/Makefile	2015-08-10 13:14:41.552209494 +0000
+@@ -4,30 +4,11 @@
+ 
+ ASTSRC_VERS:=1.1.6
+ KVERS?=$(shell uname -r)
+-PROCESSOR?=i586
+-
+-/usr/include/linux:
+-	-umount /mnt/cf
+-	mount /mnt/cf
+-	(cd /lib/modules/$(KVERS)/build; tar xvzf /mnt/cf/kdev.tgz; rm -rf arch/blackfin arch/mn10300 arch/powerpc arch/avr32 arch/xtensa arch/x86/boot arch/x86/kernel arch/x86/pci firmware security)
+-	umount /mnt/cf
+-	rm -f /usr/include/linux
+-	ln -s /lib/modules/$(KVERS)/build/include/linux /usr/include/linux 
+-
++PROCESSOR?=armv7
+ 
+ llastate:
+ 	-@mkdir -p llastate
+ 	
+-	
+-llastate/zaptel-built: /usr/include/linux	
+-	(cd zaptel; ./configure --build=$(PROCESSOR)-pc-linux)
+-	(MAKELEVEL=0; $(MAKE) -C zaptel); # Why does MAKELEVEL need to be 0 for zaptel to build correctly?
+-	touch llastate/zaptel-built
+-
+-llastate/zaptel-installed:	llastate/zaptel-built
+-	(MAKELEVEL=0; $(MAKE) -C zaptel install)
+-	touch llastate/zaptel-installed
+-
+ llastate/libpri-built:
+ 	$(MAKE) -C libpri
+ 	touch llastate/libpri-built
+@@ -46,13 +27,13 @@ llastate/asterisk-installed: llastate/as
+ 	touch llastate/asterisk-installed
+ 	
+ llastate/rpt-sounds-installed:
+-	mkdir -p /var/lib/asterisk/sounds/rpt
+-	cp -a sounds/* /var/lib/asterisk/sounds
++	mkdir -p $(DESTDIR)/var/lib/asterisk/sounds/rpt
++	cp -a sounds/* $(DESTDIR)/var/lib/asterisk/sounds
+ 	touch llastate/rpt-sounds-installed
+ 
+ llastate/id_file: llastate
+-	-mkdir -p /etc/asterisk
+-	-cp id.gsm /etc/asterisk
++	-mkdir -p $(DESTDIR)/etc/asterisk
++	-cp id.gsm $(DESTDIR)/etc/asterisk
+ 	touch llastate/id_file
+ 
+ .PHONY:	help upgrade ast-build-only install_pciradio install_usbradio install_wcte11xp install_wct1xxp clean release svsrc genconfig 
+@@ -75,19 +56,19 @@ help:
+ # Upgrade Asterisk Zaptel, and LIBPRI only, do not install configs!
+ #
+ 
+-upgrade:	llastate /usr/include/linux llastate/zaptel-installed llastate/libpri-installed llastate/asterisk-installed llastate/rpt-sounds-installed
+-	-rm llastate/asterisk-installed
+-	-umount /mnt/cf
+-	svastbin
+-	mount /mnt/cf
+-	mv -f /root/astbin.tgz /mnt/cf
+-	umount /mnt/cf
++upgrade:	llastate llastate/libpri-installed llastate/asterisk-installed llastate/rpt-sounds-installed
+ #
+ # Asterisk test build without install
+ #
+ ast-build-only: llastate llastate/zaptel-installed llastate/libpri-installed llastate/asterisk-configured
+ 	$(MAKE)  menuconfig
+ 	$(MAKE) -C asterisk DEBUG=
++
++makepkg-build: llastate llastate/libpri-built llastate/asterisk-configured
++	-@mkdir -p $(DESTDIR)/etc/asterisk
++	-@cp -rp configs/* $(DESTDIR)/etc/asterisk
++	-@cp -rp configs/usbradio/* $(DESTDIR)/etc/asterisk
++	$(MAKE) -C asterisk DEBUG=
+ #
+ # Build and install for Quad Radio PCI card
+ #
+@@ -102,12 +83,9 @@ install_pciradio: llastate/id_file upgra
+ # Build and install for USB fobs
+ #.
+ install_usbradio: llastate/id_file upgrade
+-	-@mkdir -p /etc/asterisk
+-	-@cp configs/* /etc/asterisk
+-	-@cp configs/usbradio/* /etc/asterisk
+-	-@mv /etc/asterisk/zaptel.conf /etc
+-	-@touch /etc/init.d/usbradio
+-	-@svcfg
++	-@mkdir -p $(DESTDIR)/etc/asterisk
++	-@cp -rp configs/* $(DESTDIR)/etc/asterisk
++	-@cp -rp configs/usbradio/* $(DESTDIR)/etc/asterisk
+ 
+ #
+ # Build and install for TE110P T1 card channel bank and ARIBS
+@@ -143,21 +121,13 @@ clean:	/usr/include/linux
+ # Generate the release tarballs from the development host (not the target!)
+ #
+ release:
+-	tar cvzf ../astsrc-vers-$(ASTSRC_VERS).tar.gz  --exclude='.svn' allstar asterisk libpri zaptel sounds configs extras Makefile id.gsm README LICENSE 
++	tar cvzf ../astsrc-vers-$(ASTSRC_VERS).tar.gz  --exclude='.svn' allstar asterisk libpri sounds configs extras Makefile id.gsm README LICENSE 
+ 	-@rm ../files.tar.gz
+ 	(cd ..; ln -s astsrc-vers-$(ASTSRC_VERS).tar.gz files.tar.gz)
+ 	(cd ..; sha256sum files.tar.gz | cut -d ' ' -f 1 >files.tar.gz.sha256sum)
+ #
+ # Save the source files on the compact flash on the target
+ #
+-svsrc:
+-	-rm llastate/libpri-installed llastate/zaptel-installed llastate/asterisk-installed
+-	-umount /mnt/cf
+-	mount /mnt/cf
+-	tar cvfz /mnt/cf/astsrc.tgz *
+-	sync
+-	umount /mnt/cf
+-#
+ # Used only to set the configuration for the asterisk distribution while compiling on the target
+ #
+ genconfig:	/usr/include/linux
+diff -rupN -X exclude.pats astsrc-1.4.23-pre/trunk/asterisk/codecs/gsm/Makefile ../../../odroid1/Allstar-dahdi-asterisk-arch-odroid/src/astsrc-1.4.23-pre/trunk/asterisk/codecs/gsm/Makefile
+--- astsrc-1.4.23-pre/trunk/asterisk/codecs/gsm/Makefile	2015-08-11 03:03:01.992423017 +0000
++++ astsrc-1.4.23-pre/trunk/asterisk/codecs/gsm/Makefile	2015-08-10 13:14:41.562209459 +0000
+@@ -39,7 +39,7 @@ WAV49	= -DWAV49
+ 
+ ifeq (, $(findstring $(OSARCH) , Darwin SunOS ))
+ ifeq (, $(findstring $(PROC) , x86_64 amd64 ultrasparc sparc64 arm armv5b armeb hppa2.0 ppc powerpc ppc64 ia64 s390 bfin mipsel mips))
+-ifeq (, $(findstring $(shell uname -m) , ppc ppc64 alpha armv4l armv7l s390 ))
++ifeq (, $(findstring $(shell uname -m) , ppc ppc64 alpha armv4l armv6l armv7l s390 ))
+ OPTIMIZE+=-march=$(PROC)
+ endif
+ endif
+@@ -208,7 +208,7 @@ GSM_SOURCES =	$(SRC)/add.c		\
+ # XXX Keep a space after each findstring argument
+ # XXX should merge with GSM_OBJECTS
+ ifeq ($(OSARCH),linux-gnu)
+-ifeq (,$(findstring $(shell uname -m) , x86_64 amd64 ppc ppc64 alpha armv4l armv7l sparc64 parisc s390 ))
++ifeq (,$(findstring $(shell uname -m) , x86_64 amd64 ppc ppc64 alpha armv4l armv6l armv7l sparc64 parisc s390 ))
+ ifeq (,$(findstring $(PROC) , arm armv5b armeb powerpc ia64 s390 bfin mipsel mips ))
+ GSM_SOURCES+= $(SRC)/k6opt.s
+ endif
+@@ -260,7 +260,7 @@ GSM_OBJECTS =	$(SRC)/add.o		\
+ 		$(SRC)/table.o
+ 
+ ifeq ($(OSARCH),linux-gnu)
+-ifeq (,$(findstring $(shell uname -m) , x86_64 amd64 ppc ppc64 alpha armv4l armv7l sparc64 parisc ))
++ifeq (,$(findstring $(shell uname -m) , x86_64 amd64 ppc ppc64 alpha armv4l armv6l armv7l sparc64 parisc ))
+ ifeq (,$(findstring $(PROC) , arm armv5b armeb powerpc ia64 bfin mipsel mips ))
+ GSM_OBJECTS+= $(SRC)/k6opt.o
+ endif
+diff -rupN -X exclude.pats astsrc-1.4.23-pre/trunk/asterisk/makeopts.in ../../../odroid1/Allstar-dahdi-asterisk-arch-odroid/src/astsrc-1.4.23-pre/trunk/asterisk/makeopts.in
+--- astsrc-1.4.23-pre/trunk/asterisk/makeopts.in	2015-08-11 03:03:00.702425065 +0000
++++ astsrc-1.4.23-pre/trunk/asterisk/makeopts.in	2015-08-10 13:09:14.643318503 +0000
+@@ -5,7 +5,7 @@
+ CC=@PTHREAD_CC@
+ HOST_CC=cc
+ CXX=@CXX@
+-
++ASTCFLAGS+=-fgnu89-inline
+ INSTALL=@INSTALL@
+ AWK=@AWK@
+ GREP=@GREP@
+diff -rupN -X exclude.pats astsrc-1.4.23-pre/trunk/libpri/Makefile ../../../odroid1/Allstar-dahdi-asterisk-arch-odroid/src/astsrc-1.4.23-pre/trunk/libpri/Makefile
+--- astsrc-1.4.23-pre/trunk/libpri/Makefile	2015-08-11 03:02:49.722442240 +0000
++++ astsrc-1.4.23-pre/trunk/libpri/Makefile	2015-08-10 13:14:41.562209459 +0000
+@@ -43,7 +43,7 @@ STATIC_LIBRARY=libpri.a
+ DYNAMIC_LIBRARY:=libpri.so.$(SONAME)
+ STATIC_OBJS=copy_string.o pri.o q921.o prisched.o q931.o pri_facility.o version.o
+ DYNAMIC_OBJS=copy_string.lo pri.lo q921.lo prisched.lo q931.lo pri_facility.lo version.lo
+-CFLAGS=-Wall -Werror -Wstrict-prototypes -Wmissing-prototypes -g -fPIC $(ALERTING) $(LIBPRI_COUNTERS)
++CFLAGS=-Wall -Wstrict-prototypes -Wmissing-prototypes -g -fPIC $(ALERTING) $(LIBPRI_COUNTERS)
+ INSTALL_PREFIX=$(DESTDIR)
+ INSTALL_BASE=/usr
+ SOFLAGS:=-Wl,-h$(DYNAMIC_LIBRARY)
