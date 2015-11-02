@@ -13,6 +13,7 @@ conflicts=('zaptel')
 install="${pkgname}.install"
 source=("svn+http://svn.ohnosec.org/svn/projects/allstar/astsrc-1.4.23-pre/#revision=${pkgrel}"
 	"asterisk-allstar.service"
+	"rc-updatenodelist.service"
 	"dahdi-channels.conf"
 	"armv7h-update4.patch"
 	"armv6h-update4.patch"
@@ -30,10 +31,14 @@ package() {
   cp "${srcdir}/chan_dahdi.conf" "${pkgdir}/etc/asterisk"
   mkdir -p "${pkgdir}/usr/lib/systemd/system"
   cp "${srcdir}/asterisk-allstar.service" "${pkgdir}/usr/lib/systemd/system"
+  chmod 644 "${pkgdir}/usr/lib/systemd/system/asterisk-allstar.service"
+  cp "${srcdir}/rc-updatenodelist.service" "${pkgdir}/usr/lib/systemd/system"
+  chmod 644 "${pkgdir}/usr/lib/systemd/system/rc-updatenodelist.service" "${pkgdir}/usr/lib/systemd/system/rc-updatenodelist.service"
 }
 # vim:set ts=2 sw=2 et:
 md5sums=('SKIP'
          '0f7b95440d8fe3b8a48d8fa5a1568c03'
+         'SKIP'
          'cfcb5fa559c08c257ed8db8a35249d6e'
          'ce3c2f6e7797c3a699a8ba9d453de027'
          '08a18ac98ce8092f3aac48a6e2597b73'
