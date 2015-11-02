@@ -1,0 +1,14 @@
+[Unit]
+Description=/etc/rc.local type Compatibility
+ConditionPathExists=/etc/asterisk/rc.updatenodelist
+
+[Service]
+Type=forking
+ExecStart=/etc/asterisk/rc.updatenodelist start
+TimeoutSec=0
+StandardOutput=tty
+RemainAfterExit=yes
+SysVStartPriority=99
+
+[Install]
+WantedBy=multi-user.target
