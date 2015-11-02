@@ -35,7 +35,7 @@ package() {
   chmod 644 "${pkgdir}/usr/lib/systemd/system/asterisk-allstar.service"
   cp "${srcdir}/rc-updatenodelist.service" "${pkgdir}/usr/lib/systemd/system"
   chmod 644 "${pkgdir}/usr/lib/systemd/system/rc-updatenodelist.service" "${pkgdir}/usr/lib/systemd/system/rc-updatenodelist.service"
-  cp "$(srcdir)/rc-updatenodelist" "${pkgdir/etc/asterisk/rc-updatenodelist"
+  cp "$(srcdir)/rc-updatenodelist" "${pkgdir}/etc/asterisk/rc-updatenodelist"
 }
 # vim:set ts=2 sw=2 et:
 md5sums=('SKIP'
