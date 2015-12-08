@@ -1,10 +1,35 @@
 post_install() {
+  echo Enabling and starting services...
   systemctl enable asterisk-allstar.service
-  systemctl start asterisk-allstar
+  systemctl enable rc-updatenodelist.service
+  systemctl start asterisk-allstar.service
+  systemctl start rc-updatenodelist.service
+  echo done
+}
+
+pre_upgrade() {
+  echo -n Stopping services...
+  systemctl stop asterisk-allstar.service
+  systemctl stop rc-updatenodelist.service
+  echo done
 }
 
 post_upgrade() {
   depmod -a
+  echo -n Starting services...
+  systemctl daemon-reload
+  systemctl start asterisk-allstar.service
+  systemctl start rc-updatenodelist.service
+  echo done
+}
+
+pre_remove() {
+  echo -n Stopping and disabling services...
+  systemctl stop asterisk-allstar.service
+  systemctl stop rc-updatenodelist.service
+  systemctl disable asterisk-allstar.service
+  systemctl disable rc-upddatenodelist.service
+  echo done
 }
 
 post_remove() {
