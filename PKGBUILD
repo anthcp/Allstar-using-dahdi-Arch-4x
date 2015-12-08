@@ -41,6 +41,10 @@ package() {
   cp "${srcdir}/rc-updatenodelist.service" "${pkgdir}/usr/lib/systemd/system"
   cp "${srcdir}/astsrc-1.4.23-pre/trunk/allstar/rc.updatenodelist" \
      "${pkgdir}/etc/asterisk"
+  chown -R root:root "${pkgdir}/etc/asterisk"
+# find "${pkgdir}/etc/asterisk" -type f -exec chmod 644 {} \;
+  chown -R root:root "${pkgdir}/var/lib/asterisk/sounds/rpt/nodenames"
+# find "${pkgdir}/var/lib/asterisk/sounds/rpt/nodenames" -type f -exec chmod 644 {} \;
 }
 md5sums=('SKIP'
 	 '78f6defed7cffd8ffb7c62fd746d7171'
