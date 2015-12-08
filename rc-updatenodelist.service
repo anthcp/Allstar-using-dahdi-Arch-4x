@@ -1,0 +1,12 @@
+[Unit]
+Description=asterisk-alltar node list update
+ConditionPathExists=/etc/asterisk/rc.updatenodelist
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/etc/asterisk/rc.updatenodelist
+ExecStop=/usr/bin/killall rc.updatenodelist
+
+[Install]
+WantedBy=multi-user.target
