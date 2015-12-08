@@ -24,15 +24,15 @@ post_upgrade() {
 }
 
 pre_remove() {
-  echo -n Stopping and disabling services...
+  echo -n Stopping services...
   systemctl stop asterisk-allstar.service
   systemctl stop rc-updatenodelist.service
-  systemctl disable asterisk-allstar.service
-  systemctl disable rc-upddatenodelist.service
   echo done
 }
 
 post_remove() {
+  rm -f /etc/systemd/system/multi-user.target.wants/asterisk-allstar.service
+  rm -f /etc/systemd/system/multi-user.target.wants/asterisk-allstar.service
   depmod -a
 }
 
