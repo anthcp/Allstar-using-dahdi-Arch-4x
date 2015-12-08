@@ -2,8 +2,8 @@
 # Supplemental contributions: K2DLS <k2dls@arrl.net>
 
 pkgname=allstar-using-dahdi
-pkgver=0.2.0.1
-pkgrel=1505
+pkgver=0.2.0.2
+pkgrel=1526
 pkgdesc="Asterisk with allstar mods using dahdi"
 arch=('armv6h' 'armv7h')
 url="http://www.asterisk.org/"
